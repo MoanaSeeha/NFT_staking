@@ -1,0 +1,11 @@
+html {
+    background-image: url('./images/CryptoPunk.638bdd6c.svg') ;
+    background-repeat: no-repeat;
+    background-size: cover;
+    overflow-y: auto;
+    height: 100vh;
+}
+
+body {
+    margin: 0;
+}
