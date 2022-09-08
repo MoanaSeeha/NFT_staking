@@ -62,12 +62,17 @@ const StakedNFT = ({tokenId, clickEvent}) => {
   },[]);
 
   const fetchData = async () => {
-    let nft_contract = new ethers.Contract(SMART_CONTRACT_ADDRESSES.NFT, NFT_ABI, provider);
-    let uri = await nft_contract.tokenURI(Number(tokenId));
-    let fetched = await axios.get(uri);
-    fetched.data['image'] = fetched.data['image'].replace("ipfs://", " https://ipfs.io/ipfs/");
-    setImg(fetched.data['image'])
-    setname(fetched.data['name'])
+    try {
+      let nft_contract = new ethers.Contract(SMART_CONTRACT_ADDRESSES.NFT, NFT_ABI, provider);
+      let uri = await nft_contract.tokenURI(Number(tokenId));
+      let fetched = await axios.get(uri);
+      fetched.data['image'] = fetched.data['image'].replace("ipfs://", " https://ipfs.io/ipfs/");
+      setImg(fetched.data['image'])
+      setname(fetched.data['name'])
+    } catch (error) {
+      console.log(error)
+    }
+    
   }
   return (
     <Container>
