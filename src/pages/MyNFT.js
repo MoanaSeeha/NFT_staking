@@ -38,6 +38,7 @@ const LeftPanel = styled.div`
 `
 const RightPanel = styled.div`
   display: flex;
+  flex-direction: column;
   justify-content: center;
   flex-wrap: wrap;
   width: 50%;
@@ -56,6 +57,7 @@ const ClaimButton = styled.button`
   text-align: center;
   border-radius: 5px;
   background-color: gray;
+  display: inline-block;
   cursor: pointer;
   font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
   &:hover{
@@ -172,6 +174,18 @@ const MyNFT = () => {
     }
   }
 
+  const claimRewards = async () => {
+    try {
+      dispatch(setLoading(true));
+      let staking_contract = new ethers.Contract(SMART_CONTRACT_ADDRESSES.Staking, Staking_ABI, signer);
+      let tx = await staking_contract.claimRewards();
+      dispatch(setLoading(false));
+    } catch (error) {
+      dispToast(error);
+      dispatch(setLoading(false));
+    }  
+  }
+
   return(<>
     <TitleofPage>My NFTs</TitleofPage>
     
@@ -186,11 +200,12 @@ const MyNFT = () => {
           })}
         </NFTPanel>
       </LeftPanel>
-      <ClaimButton>Claim Reward</ClaimButton>
+      
       <RightPanel>
-
-        <p style={{fontSize: '30px', margin: 0}}>Staked TTTT NFTS</p>
-        
+        <div style={{'display': 'flex', flexDirection: 'column', margin: 'auto'}}>
+          <p style={{fontSize: '30px', margin: 0, display: 'inline-block'}}>Staked TTTT NFTS</p>
+          <ClaimButton onClick={claimRewards}>Claim Reward</ClaimButton>
+        </div>
         <NFTPanel>
           {
             stakedTokenIds.map((id, index) => {
