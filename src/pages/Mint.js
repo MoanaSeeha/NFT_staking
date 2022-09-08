@@ -11,7 +11,7 @@ const Mint = () => {
   const[inputfocused,focusInput] = useState(false);
   
   const calcMintPrice = (v) => {
-    if(!(v>20 || v<0)) {
+    if(!(v>9 || v<0)) {
       setMintAmount(v);
     }
   }
@@ -124,17 +124,17 @@ const Mint = () => {
       <TitleofPage>Mint</TitleofPage>
       <Panel>
         <Description>
-          all degens become TV Punks..<br/> AAAAAAAAAAAUUUUUUGGGGGGHHHH..<br/> join us now already..
+          all degens become TEST NFTS..<br/> AAAAAAAAAAAUUUUUUGGGGGGHHHH..<br/> join us now already..
         </Description>
         <MintPanel>
-          <img src={`${process.env.PUBLIC_URL}/images/tvpunks-second-gif.gif`} alt='gif'/>
+          <img src={`${process.env.PUBLIC_URL}/images/tvpunks-second-gif.png`} alt='gif'/>
           <div>
             <div style={{display: 'flex', flexDirection: 'row'}}>
               <AddButton
                 onClick={() => calcMintPrice(Number(mintAmount)-1)}
                 onMouseEnter={() => inputClicked(true)} onMouseLeave={() => inputClicked(false)}>-</AddButton>
               <Input onInput={(e)=> {calcMintPrice(e.target.value)}} onFocus={() => inputClicked(true)} onBlur={() => inputClicked(false)}>
-                <p>{mintAmount}</p> TVPunks <p>X 0.03</p> ETH = <p>{(mintAmount*0.03).toFixed(2)}</p> ETH
+                <p>{mintAmount}</p> TEST NFTS <p>X 0.001</p> ETH = <p>{(mintAmount*0.001).toFixed(3)}</p> ETH
               </Input>
               <AddButton 
                 onClick={() => calcMintPrice(Number(mintAmount)+1)}
@@ -146,8 +146,8 @@ const Mint = () => {
         </MintPanel>
       </Panel>
       <Description style={{textAlign: 'center', margin: '20px 0 0 0'}}>
-        {useSelector(totalNFT)-useSelector(remainingNFT)} TVPunks Minted of 
-        {' '+useSelector(totalNFT)} TVPunks
+        {useSelector(totalNFT)-useSelector(remainingNFT)} TEST NFTS Minted of 
+        {' '+useSelector(totalNFT)} TEST NFTS
       </Description>
     </>
   )
