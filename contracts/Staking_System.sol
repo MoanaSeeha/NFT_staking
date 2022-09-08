@@ -947,12 +947,15 @@ contract ERC721Staking is Ownable, ReentrancyGuard {
         }
         stakers[msg.sender].amountStaked -= len;
         stakers[msg.sender].timeOfLastUpdate = block.timestamp;
-        for (uint256 i; i < len; ++i) {
-            if (stakersArray[i] == msg.sender) {
-                stakersArray[stakersArray.length - 1] = stakersArray[i];
-                stakersArray.pop();
+        if(stakers[msg.sender].amountStaked == 0) {
+            for (uint256 i; i < len; ++i) {
+                if(stakersArray[i] == msg.sender) {
+                    stakersArray[stakersArray.length - 1] = stakersArray[i];
+                    stakersArray.pop();
+                }
             }
         }
+        
     }
 
     // Calculate rewards for the msg.sender, check if there are any rewards
