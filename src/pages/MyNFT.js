@@ -1,8 +1,16 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from 'styled-components';
+import { ethers } from 'ethers';
+import { useSelector, useDispatch } from "react-redux";
+// import { toast, ToastContainer } from 'react-toastify';
 
+import { connectedAccount, isConnected, connectedChain } from "../store/accountReducer";
+import { setLoading } from "../store/loadingReducer";
+import { CHAINID_SHOULDBE_CONNECTED, SMART_CONTRACT_ADDRESSES, NETWORKS } from "../constant/constants";
 import NFTCard from '../components/NFTCard';
 import StakedNFT from "../components/StakedNFT";
+import NFT_ABI from "../abi/NFT.json";
+import Staking_ABI from "../abi/STAKING_SYSTEM.json"
 
 const TitleofPage = styled.p`
   font-family: fantasy;
@@ -39,29 +47,156 @@ const NFTPanel = styled.div`
   justify-content: center;
   flex-wrap: wrap;
 `
+const ClaimButton = styled.button`
+  margin: 20px 0 0 0;
+  padding: 5px;
+  border: 1px gray solid;
+  font-size: 14px;
+  color:white;
+  text-align: center;
+  border-radius: 5px;
+  background-color: gray;
+  cursor: pointer;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  &:hover{
+    border: 1px skyblue solid;
+  }
+  transition: all 0.5s;
+`
 
 const MyNFT = () => {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const connected_account = useSelector(connectedAccount);
+  let signer = connected_account === ''?null:provider.getSigner(connected_account);
+  const is_Connected = useSelector(isConnected);
+  const account = useSelector(connectedAccount);
+  const connected_chain = useSelector(connectedChain);
+  const dispatch = useDispatch();
+
+
+  const [mintedTokenIds,setmintedTokenIds] = useState([]);
+  const [stakedTokenIds,setstakedTokenIds] = useState([]);
+
+  useEffect(()=>{
+    dispatch(setLoading(false));
+    if(connected_chain === CHAINID_SHOULDBE_CONNECTED && is_Connected) {
+      fetchMintedNFTData();
+      fetchStakedNFTData();
+    }
+    else {
+      if(!is_Connected) {
+        dispToast(`Connect Wallet`);
+      }
+      else {
+        Object.keys(NETWORKS).forEach((oneKey,i) => {
+          if(NETWORKS[oneKey]?.chainId === CHAINID_SHOULDBE_CONNECTED) {
+            dispToast(`Connect Wallet to ${NETWORKS[oneKey]?.name} Chain`);
+          }
+        })
+      }
+    }
+  },[is_Connected, account, connected_chain, dispatch]);
+
+  const dispToast = (message) => {
+    // toast.error(message, {
+    //   position: "top-right",
+    //   autoClose: 2000,
+    //   hideProgressBar: false,
+    //   closeOnClick: true,
+    //   pauseOnHover: false,
+    //   draggable: true,
+    //   progress: 0,
+    // }); return;
+    window.alert(message);
+  }
+
+  const fetchMintedNFTData = async () => {
+      try {
+        dispatch(setLoading(true));
+        let nft_contract = new ethers.Contract(SMART_CONTRACT_ADDRESSES.NFT, NFT_ABI, signer);
+        let temp = await nft_contract.walletOfOwner(account);
+        setmintedTokenIds(temp.toString().split(','));
+        // console.log('temp', typeof temp.toString())
+        // setTokenURIs(getURIFromIDs(temp));
+        dispatch(setLoading(false));
+        
+      } catch (error) {
+        dispToast(error);
+        dispatch(setLoading(false));
+      }  
+  }
+
+  const fetchStakedNFTData = async () => {
+    try {
+      dispatch(setLoading(true));
+      let staking_contract = new ethers.Contract(SMART_CONTRACT_ADDRESSES.Staking, Staking_ABI, signer);
+      let temp = await staking_contract.getStakedTokens(account);
+      setstakedTokenIds(temp.toString().split(','));
+      // setstakedTokenURIs(getURIFromIDs(temp));
+      dispatch(setLoading(false));
+    } catch (error) {
+      dispToast(error);
+      dispatch(setLoading(false));
+    }  
+  }
+
+  const handleStakingClick = async (id) => {
+    try {
+      dispatch(setLoading(true));
+      console.log(id)
+      let nft_contract = new ethers.Contract(SMART_CONTRACT_ADDRESSES.NFT, NFT_ABI, signer);
+      let staking_contract = new ethers.Contract(SMART_CONTRACT_ADDRESSES.Staking, Staking_ABI, signer);
+      await nft_contract.approve(SMART_CONTRACT_ADDRESSES.Staking, id)
+      console.log("+++++++++")
+      nft_contract.on('Approval',async (owner, spender, value) => {
+        let tx = await staking_contract.stake([id]);
+        console.log(tx);
+      })
+      dispatch(setLoading(false));
+    } catch (error) {
+      dispToast(error);
+      dispatch(setLoading(false));
+    }  
+  }
+
+  const handleUnStakingClick = async (id) => {
+    try {
+      dispatch(setLoading(true));
+      let staking_contract = new ethers.Contract(SMART_CONTRACT_ADDRESSES.Staking, Staking_ABI, signer);
+      let tx = await staking_contract.withdraw([id]);
+      console.log(tx);
+      dispatch(setLoading(false));
+    } catch (error) {
+      dispToast(error);
+      dispatch(setLoading(false));
+    }
+  }
+
   return(<>
     <TitleofPage>My NFTs</TitleofPage>
+    
+    {/* <ToastContainer/> */}
     <Container>
+      
       <LeftPanel>
-        <p style={{fontSize: '30px', margin: 0}}>My TV Punks</p>
-        <NFTPanel>
-          <NFTCard img={`${process.env.PUBLIC_URL}/images/roadmap_right.png`} id='#34234234'/>
-          <NFTCard img={`${process.env.PUBLIC_URL}/images/roadmap_right.png`} id='#34234234'/>
-          <NFTCard img={`${process.env.PUBLIC_URL}/images/roadmap_right.png`} id='#34234234'/>
-          <NFTCard img={`${process.env.PUBLIC_URL}/images/roadmap_right.png`} id='#34234234'/>
-          <NFTCard img={`${process.env.PUBLIC_URL}/images/roadmap_right.png`} id='#34234234'/>
-          <NFTCard img={`${process.env.PUBLIC_URL}/images/roadmap_right.png`} id='#34234234'/>
+        <p style={{fontSize: '30px', margin: 0}}>My TTTT NFTS</p>
+        <NFTPanel>{
+          mintedTokenIds.map((id, index) => {
+            return <NFTCard key={index} clickEvent={() => {handleStakingClick(id)}} tokenId={id}/>
+          })}
         </NFTPanel>
-        
       </LeftPanel>
+      <ClaimButton>Claim Reward</ClaimButton>
       <RightPanel>
-        <p style={{fontSize: '30px', margin: 0}}>Staked TV Punks</p>
+
+        <p style={{fontSize: '30px', margin: 0}}>Staked TTTT NFTS</p>
+        
         <NFTPanel>
-          <StakedNFT img={`${process.env.PUBLIC_URL}/images/roadmap_right.png`} id='#34234234'/>
-          <StakedNFT img={`${process.env.PUBLIC_URL}/images/roadmap_right.png`} id='#34234234'/>
-          <StakedNFT img={`${process.env.PUBLIC_URL}/images/roadmap_right.png`} id='#34234234'/>
+          {
+            stakedTokenIds.map((id, index) => {
+              return <StakedNFT key={index} tokenId={id} clickEvent={() => {handleUnStakingClick(id)}}/>
+            })
+          }
         </NFTPanel>
       </RightPanel>
     </Container>

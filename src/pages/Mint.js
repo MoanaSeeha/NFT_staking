@@ -1,14 +1,30 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import styled from 'styled-components';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { ethers } from "ethers";
 
 import { device } from "../constant/device";
 import { remainingNFT, totalNFT } from "../store/nftReducer";
+import { connect, isConnected, disConnect, connectedAccount, setChain, connectedChain } from "../store/accountReducer"
+import { setLoading } from "../store/loadingReducer";
+import { CHAINID_SHOULDBE_CONNECTED, SMART_CONTRACT_ADDRESSES, NETWORKS } from "../constant/constants";
+import NFT_ABI from "../abi/NFT.json";
+import Staking_ABI from "../abi/STAKING_SYSTEM.json"
 
 const Mint = () => {
 
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const connected_account = useSelector(connectedAccount);
+  let signer = connected_account === ''?null:provider.getSigner(connected_account);
+  const is_Connected = useSelector(isConnected);
+  const account = useSelector(connectedAccount);
+  const connected_chain = useSelector(connectedChain);
+
   const[mintAmount,setMintAmount] = useState(0);
+  const[mintCost,setmintCost] = useState(0);
   const[inputfocused,focusInput] = useState(false);
+
+  const dispatch = useDispatch()
   
   const calcMintPrice = (v) => {
     if(!(v>9 || v<0)) {
@@ -18,6 +34,53 @@ const Mint = () => {
 
   const inputClicked = (focus) => {
     focusInput(focus);
+  }
+
+  const dispToast = (message) => {
+    // toast.error(message, {
+    //   position: "top-right",
+    //   autoClose: 2000,
+    //   hideProgressBar: false,
+    //   closeOnClick: true,
+    //   pauseOnHover: false,
+    //   draggable: true,
+    //   progress: 0,
+    // }); return;
+    window.alert(message);
+  }
+
+  const mintNFT = async () => {
+    if(connected_chain === CHAINID_SHOULDBE_CONNECTED && is_Connected) {
+      dispatch(setLoading(true));
+      let nft_contract = new ethers.Contract(SMART_CONTRACT_ADDRESSES.NFT, NFT_ABI, signer);
+      const options = {value: ethers.utils.parseEther((Number(mintCost)*mintAmount).toString())}
+      let tx = await nft_contract.mint(mintAmount, options)
+      console.log(tx);
+      dispatch(setLoading(false));
+    } else {
+      if(!is_Connected) {
+        dispToast(`Connect Wallet First`);
+      }
+      else {
+        Object.keys(NETWORKS).forEach((oneKey,i) => {
+          if(NETWORKS[oneKey]?.chainId === CHAINID_SHOULDBE_CONNECTED) {
+            dispToast(`Connect Wallet to ${NETWORKS[oneKey]?.name} Chain`);
+          }
+        })
+      }
+    }
+  }
+
+  useEffect(()=>{
+    dispatch(setLoading(false));
+    fetchCost();
+  },[]);
+
+  const fetchCost = async () => {
+    let nft_contract = new ethers.Contract(SMART_CONTRACT_ADDRESSES.NFT, NFT_ABI, provider);
+    let cost = await nft_contract.cost();
+    // console.log('cost', ethers.utils.formatEther(cost.toString()))
+    setmintCost(ethers.utils.formatEther(cost.toString()))
   }
 
   const TitleofPage = styled.p`
@@ -134,21 +197,19 @@ const Mint = () => {
                 onClick={() => calcMintPrice(Number(mintAmount)-1)}
                 onMouseEnter={() => inputClicked(true)} onMouseLeave={() => inputClicked(false)}>-</AddButton>
               <Input onInput={(e)=> {calcMintPrice(e.target.value)}} onFocus={() => inputClicked(true)} onBlur={() => inputClicked(false)}>
-                <p>{mintAmount}</p> TEST NFTS <p>X 0.001</p> ETH = <p>{(mintAmount*0.001).toFixed(3)}</p> ETH
+                <p>{mintAmount}</p> TEST NFTS <p>X {mintCost}</p> ETH = <p>{(mintAmount*mintCost).toFixed(3)}</p> ETH
               </Input>
               <AddButton 
                 onClick={() => calcMintPrice(Number(mintAmount)+1)}
                 onMouseEnter={() => inputClicked(true)} 
                 onMouseLeave={() => inputClicked(false)}>+</AddButton>
             </div>
-            <MintButton>MINT</MintButton>
+            <MintButton
+              onClick={mintNFT}
+            >MINT</MintButton>
           </div>
         </MintPanel>
       </Panel>
-      <Description style={{textAlign: 'center', margin: '20px 0 0 0'}}>
-        {useSelector(totalNFT)-useSelector(remainingNFT)} TEST NFTS Minted of 
-        {' '+useSelector(totalNFT)} TEST NFTS
-      </Description>
     </>
   )
 }

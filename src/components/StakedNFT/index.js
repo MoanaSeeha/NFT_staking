@@ -1,5 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import axios from 'axios';
+import { ethers } from "ethers";
+
+import { CHAINID_SHOULDBE_CONNECTED, SMART_CONTRACT_ADDRESSES, NETWORKS } from "../../constant/constants";
+import NFT_ABI from "../../abi/NFT.json";
 
 const Container = styled.div`
   display: flex;
@@ -46,16 +51,33 @@ font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 transition: all 0.5s;
 `
 
-const StakedNFT = ({id, img}) => {
+const StakedNFT = ({tokenId, clickEvent}) => {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+  const [img,setImg] = useState('');
+  const [name, setname] = useState('')
+
+  useEffect(()=>{
+    fetchData()
+  },[]);
+
+  const fetchData = async () => {
+    let nft_contract = new ethers.Contract(SMART_CONTRACT_ADDRESSES.NFT, NFT_ABI, provider);
+    let uri = await nft_contract.tokenURI(Number(tokenId));
+    let fetched = await axios.get(uri);
+    fetched.data['image'] = fetched.data['image'].replace("ipfs://", " https://ipfs.io/ipfs/");
+    setImg(fetched.data['image'])
+    setname(fetched.data['name'])
+  }
   return (
     <Container>
       <img alt="nft card" src={img}/>
       <Info>
         <div>
-          <p>id:</p>
-          {id}
+          <p>Name:</p>
+          {name}
         </div>
-        <StakeButton>Claim Reward</StakeButton>
+        <StakeButton onClick={clickEvent}>UnStake</StakeButton>
       </Info>
 
     </Container>

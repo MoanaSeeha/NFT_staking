@@ -79,7 +79,7 @@ const HeaderLeft = styled.div`
   overflow-y: auto;
   top: ${({open})=> (open?'110px':'-300px')};
   z-index: ${({open})=> (open?'10':'-10')};
-  backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); */
   transition: top 0.5s;
   left: 50%;
   transform: translate(-50%, 0px);
@@ -91,7 +91,7 @@ const HeaderLeft = styled.div`
     flex-direction: row;
     top: 0;
     border-radius: 0;
-    backdrop-filter: blur(10px);
+    /* backdrop-filter: blur(10px); */
   }
 `
 

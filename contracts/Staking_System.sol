@@ -913,7 +913,7 @@ contract ERC721Staking is Ownable, ReentrancyGuard {
             nftCollection.transferFrom(msg.sender, address(this), _tokenIds[i]);
             stakerAddress[_tokenIds[i]] = msg.sender;
         }
-        for (uint256 i = 0; i < _tokenIds.length; i++) {
+        for (uint256 i = 0; i < len; i++) {
             stakers[msg.sender].tokenIds.push(_tokenIds[i]);
         }
         
@@ -1025,11 +1025,11 @@ contract ERC721Staking is Ownable, ReentrancyGuard {
     }
 
     //get Staked token Ids for user address
-    function getStakedTokens()
+    function getStakedTokens(address _user)
         public
         view
         returns (uint256[] memory tokenIds)
     {
-        return stakers[msg.sender].tokenIds;
+        return stakers[_user].tokenIds;
     }
 }

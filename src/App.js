@@ -2,15 +2,16 @@ import React,{ useEffect } from "react";
 import styled from 'styled-components';
 
 
-
 // import { ethers } from "ethers";
 import {  Route, Routes } from 'react-router-dom';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 // import nft_abi from "./MutantGoblins_abi.json";
 import { routes } from './config';
 import Layout from './components/Layout';
 import { disConnect } from "./store/accountReducer";
+import { isLoading } from "./store/loadingReducer";
+import Loading from "./components/loading";
 
 // const NFT_address = `0x6b7899c2C88c1D426D8dE97d49c934f4EE8a277a`;
 
@@ -110,34 +111,15 @@ export default function App() {
   return (
     <>
     <Layout/>
+      <Loading show={useSelector(isLoading)} />
+      
       <Container>
       <Routes>
-        {/* <Layout> */}
           {routes.map(route =>
             route.subRoutes ? route.subRoutes.map(item => addRoute(item)) : addRoute(route)
           )}
-          {/* </Layout> */}
           </Routes>
-          </Container>
-        {/* <div className="button_group">
-          <button className="add_button left_button" onClick={() => {
-            if(amount > 1) {
-              return setAmount(amount-1);
-            }
-          }}>-</button>
-          <p style={{width: '30px', textAlign: 'center', padding: '0 30px'}}>{amount}</p>
-          <button className="add_button right_button" onClick={() => {
-            if(amount < 20) {
-              return setAmount(amount+1);
-            }
-          }}>+</button>
-        </div>
-        <button className="mint_button" onClick={mint}>Mint</button> 
-        <p style={{display: 'flex'}}>{remainingCount} out of 9999 of these fuckers left.. 
-          <a href="https://rinkeby.etherscan.io/address/0x5040F3cdB3e63B7519ed26fBd720853c70fe02BC" target="_blank" rel="noreferrer">
-            <img alt='' src={`${process.env.PUBLIC_URL}/images/etherscan.c49ca24.svg`} width={'30px'} style={{margin: '0 10px', cursor: 'pointer'}}/>
-          </a>
-          </p> */}
+      </Container>
     </>
   );
 }
